@@ -53,6 +53,10 @@ android {
         }
     }
 
+    publishing {
+        singleVariant('release')
+    }
+
     compileOptions {
         // Flag to enable support for the new language APIs
         coreLibraryDesugaringEnabled true
@@ -84,7 +88,7 @@ afterEvaluate {
         publications {
             // Creates a Maven publication called "release".
             release(MavenPublication) {
-                from components.release
+                from components.named('release').get()
                 groupId = 'com.wizkterm'
                 artifactId = 'termux-shared'
                 version = '0.118.0'

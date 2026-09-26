@@ -23,6 +23,10 @@ android {
         }
     }
 
+    publishing {
+        singleVariant('release')
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -43,7 +47,7 @@ afterEvaluate {
         publications {
             // Creates a Maven publication called "release".
             release(MavenPublication) {
-                from components.release
+                from components.named('release').get()
                 groupId = 'com.wizkterm'
                 artifactId = 'terminal-view'
                 version = '0.118.0'
