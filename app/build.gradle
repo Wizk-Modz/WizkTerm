@@ -4,7 +4,7 @@ plugins {
 
 ext {
     // The packageVariant defines the bootstrap variant that will be included in the app APK.
-    // This must be supported by com.termux.shared.termux.TermuxBootstrap.PackageVariant or app will
+    // This must be supported by com.wizkterm.shared.termux.TermuxBootstrap.PackageVariant or app will
     // crash at startup.
     // Bootstrap of a different variant must not be manually installed by the user after app installation
     // by replacing $PREFIX since app code is dependant on the variant used to build the APK.
@@ -20,7 +20,8 @@ ext {
 }
 
 android {
-    compileSdkVersion project.properties.compileSdkVersion.toInteger()
+    namespace "com.wizkterm"
+    compileSdk project.properties.compileSdkVersion.toInteger()
     ndkVersion = System.getenv("JITPACK_NDK_VERSION") ?: project.properties.ndkVersion
     def appVersionName = System.getenv("TERMUX_APP_VERSION_NAME") ?: ""
     def apkVersionTag = System.getenv("TERMUX_APK_VERSION_TAG") ?: ""
@@ -45,7 +46,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.termux"
+        applicationId "com.wizkterm"
         minSdk buildMinSdk
         targetSdk buildTargetSdk
         versionCode 1022
@@ -62,8 +63,8 @@ android {
                 project.ext.bootstrapMaxRelease ? "\"" + project.ext.bootstrapMaxRelease + "\"" : "null"
         buildConfigField "String", "TERMUX_PACKAGE_VARIANT", "\"" + project.ext.packageVariant + "\"" // Used by TermuxApplication class
 
-        manifestPlaceholders.TERMUX_PACKAGE_NAME = "com.termux"
-        manifestPlaceholders.TERMUX_APP_NAME = "Termux"
+        manifestPlaceholders.TERMUX_PACKAGE_NAME = "com.wizkterm"
+        manifestPlaceholders.TERMUX_APP_NAME = "WizkTerm"
         manifestPlaceholders.TERMUX_API_APP_NAME = "Termux:API"
         manifestPlaceholders.TERMUX_BOOT_APP_NAME = "Termux:Boot"
         manifestPlaceholders.TERMUX_FLOAT_APP_NAME = "Termux:Float"
@@ -82,8 +83,8 @@ android {
                 enable ((gradle.startParameter.taskNames.any { it.contains("Debug") } && splitAPKsForDebugBuilds == "1") ||
                     (gradle.startParameter.taskNames.any { it.contains("Release") } && splitAPKsForReleaseBuilds == "1"))
                 reset ()
-                include 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
-                universalApk true
+                include 'arm64-v8a'
+                universalApk false
             }
         }
     }
@@ -123,7 +124,11 @@ android {
         }
     }
 
-    lintOptions {
+    buildFeatures {
+        buildConfig true
+    }
+
+    lint {
         disable 'ProtectedPermissions'
     }
 
@@ -133,7 +138,7 @@ android {
         }
     }
 
-    packagingOptions {
+    packaging {
         jniLibs {
             useLegacyPackaging true
         }
@@ -141,13 +146,9 @@ android {
 
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
-            if (variant.buildType.name == "debug") {
-                def abi = output.getFilter(com.android.build.OutputFile.ABI)
-                outputFileName = new File("termux-app_" + (apkVersionTag ? apkVersionTag : project.ext.packageVariant + "-" + "debug") + "_" + (abi ? abi : "universal") + ".apk")
-            } else if (variant.buildType.name == "release") {
-                def abi = output.getFilter(com.android.build.OutputFile.ABI)
-                outputFileName = new File("termux-app_" + (apkVersionTag ? apkVersionTag : project.ext.packageVariant + "-" + "release") + "_" + (abi ? abi : "universal") + ".apk")
-            }
+            def abi = output.getFilter(com.android.build.OutputFile.ABI)
+            def tag = apkVersionTag ? apkVersionTag : project.ext.packageVariant + "-" + variant.buildType.name
+            outputFileName = "wizkterm-app_" + tag + "_" + (abi ? abi : "universal") + ".apk"
         }
     }
 
@@ -156,10 +157,10 @@ android {
 dependencies {
     testImplementation "junit:junit:4.13.2"
     testImplementation "org.robolectric:robolectric:4.10"
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.5"
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.4"
 }
 
-task versionName {
+tasks.register('versionName') {
     doLast {
         print android.defaultConfig.versionName
     }
@@ -223,29 +224,22 @@ clean {
     }
 }
 
-task downloadBootstraps() {
+tasks.register('downloadBootstraps') {
     doLast {
         def packageVariant = project.ext.packageVariant
         if (packageVariant == "apt-android-7") {
             def version =  "2025.03.28-r1" + "+" + packageVariant
             downloadBootstrap("aarch64", "c8d702b6f742935001c37cda81b8ac69504a95d5cf28f2899532dd8cd4b057eb", version)
-            downloadBootstrap("arm",     "f3bb9d1b32552b34fff41861dbf193ec5ba2848d67d779ac1c7256da6640f85d", version)
-            downloadBootstrap("i686",    "36db3e1ac3547f9a174fd763bd9a484fa1a3449cdd81e1cf2408ff0454f839c6", version)
-            downloadBootstrap("x86_64",  "1c124ec2396ee70a51b0b0a574f29aa659526aa2b9f558f993b2fb05d1e51855", version)
         } else if (packageVariant == "apt-android-5") {
             def version = "2025.03.28-r3" + "+" + packageVariant
             downloadBootstrap("aarch64", "147c98e610a30588665a89776314833c293006b12c70e65dcde6eb54c2344113", version)
-            downloadBootstrap("arm", "363c28dd4b70c995302498beae79fb5917af7d3b0ca9fbd9da7de96ab64c6122", version)
-            downloadBootstrap("i686", "a2e742381ab24cf8c9a78ae4e2425ee44d8fb9625a2b0ef63e4cd32e292f7186", version)
-            downloadBootstrap("x86_64", "4f6866c222b0f1ae1b180220ffc6e8e1afbc10b9cbb7a462c062c490eda90044", version)
         } else {
             throw new GradleException("Unsupported TERMUX_PACKAGE_VARIANT \"" + packageVariant + "\"")
         }
     }
 }
 
-afterEvaluate {
-    android.applicationVariants.all { variant ->
-        variant.javaCompileProvider.get().dependsOn(downloadBootstraps)
-    }
+// Bootstrap zip phải có sẵn trước khi native build chạy vì termux-bootstrap-zip.S dùng .incbin.
+tasks.matching { it.name == 'preBuild' || it.name.contains('NdkBuild') || it.name.startsWith('configureNdkBuild') }.configureEach {
+    dependsOn(tasks.named('downloadBootstraps'))
 }
