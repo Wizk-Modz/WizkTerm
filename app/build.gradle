@@ -49,8 +49,8 @@ android {
         applicationId "com.wizkterm"
         minSdk buildMinSdk
         targetSdk buildTargetSdk
-        versionCode 1022
-        versionName "0.119.0-beta.3"
+        versionCode 1023
+        versionName "1.0.0"
 
         if (appVersionName) versionName = appVersionName
         validateVersionName(versionName)
