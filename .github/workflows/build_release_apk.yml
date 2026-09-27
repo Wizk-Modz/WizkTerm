@@ -14,12 +14,12 @@ on:
 jobs:
   build-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Cần để upload APK vào GitHub Release
     strategy:
       fail-fast: false
       matrix:
         package_variant: [ apt-android-7 ]
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Resolve release tag
