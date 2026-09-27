@@ -44,7 +44,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./gradlew clean
 ```
 
-APK output: `app/build/outputs/apk/debug/wizkterm-app_<tag>_arm64-v8a.apk`
+APK output debug: `app/build/outputs/apk/debug/wizkterm-app_<tag>_arm64-v8a.apk`
+APK output release: `app/build/outputs/apk/release/wizkterm-app_<tag>_arm64-v8a.apk`
+APK trên GitHub Release: `WizkTerm-<version>-arm64-v8a.apk` (kèm `.sha256`)
 
 **Môi trường build:** cần JDK 17. Nếu build local không tải được Gradle distribution, dùng GitHub Actions (`.github/workflows/debug_build.yml`) — đây cũng là cách kiểm chứng build chính thức của repo.
 
@@ -180,10 +182,29 @@ Workflows trigger trên nhánh `main`, dùng JDK 17 (temurin):
 - `debug_build.yml` — build debug APK arm64-v8a, upload artifact + sha256sums
 - `run_tests.yml` — `./gradlew test`
 - `gradle-wrapper-validation.yml` — validate Gradle wrapper
-- `attach_debug_apks_to_release.yml` — trigger khi publish release, build và đính APK vào release
+- `build_release_apk.yml` — trigger khi publish GitHub Release (hoặc `workflow_dispatch` với input `tag`), build APK **release đã ký** và upload lên release
 - `trigger_library_builds_on_jitpack.yml` — trigger Jitpack build cho 3 library
 
 Không có bước lint trong CI. `lint { disable 'ProtectedPermissions' }` trong `app/build.gradle`.
+
+### Ký release APK
+
+Workflow `build_release_apk.yml` giải mã keystore từ GitHub Secrets rồi export `WIZK_KEYSTORE_PATH` để Gradle dùng. `app/build.gradle` chỉ ký bằng `signingConfigs.release` khi biến môi trường này tồn tại — build local không có biến sẽ dùng debug key.
+
+Secrets cần có (repo Settings → Secrets and variables → Actions):
+
+| Secret | Nội dung |
+|---|---|
+| `WIZK_KEYSTORE_BASE64` | Keystore mã hoá base64 (`base64 -w0 wizk.keystore`) |
+| `WIZK_KEYSTORE_PASSWORD` | Mật khẩu keystore |
+| `WIZK_KEY_ALIAS` | Alias của key |
+| `WIZK_KEY_PASSWORD` | Mật khẩu key |
+
+Cập nhật secret: `gh secret set <TÊN> --repo Wizk-Modz/WizkTerm --body '<giá trị>'`
+
+**Không commit keystore hoặc password vào repo.** Tên APK khi upload lên release là `WizkTerm-<version>-arm64-v8a.apk` kèm file `.sha256`.
+
+**Lưu ý:** workflow đọc file từ commit mà tag trỏ tới, không phải từ `main`. Khi sửa workflow hoặc `build.gradle`, phải di chuyển tag lên commit mới rồi publish lại release, nếu không bản cũ sẽ được dùng.
 
 ## Commit message
 
