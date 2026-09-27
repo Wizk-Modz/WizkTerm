@@ -96,6 +96,17 @@ android {
             storePassword 'xrj45yWGLbsO7W0v'
             keyPassword 'xrj45yWGLbsO7W0v'
         }
+
+        // Keystore release lấy từ biến môi trường (GitHub Secrets khi chạy CI).
+        // Không commit keystore/password vào repo.
+        if (System.getenv("WIZK_KEYSTORE_PATH")) {
+            release {
+                storeFile file(System.getenv("WIZK_KEYSTORE_PATH"))
+                storePassword System.getenv("WIZK_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("WIZK_KEY_ALIAS")
+                keyPassword System.getenv("WIZK_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -103,6 +114,11 @@ android {
             minifyEnabled true
             shrinkResources false // Reproducible builds
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            // Chỉ ký bằng keystore release khi có biến môi trường.
+            if (System.getenv("WIZK_KEYSTORE_PATH")) {
+                signingConfig signingConfigs.release
+            }
         }
 
         debug {
