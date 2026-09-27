@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Chỉ build kiến trúc **arm64-v8a**
 - Toolchain: AGP **8.13.0**, Gradle **9.0.0**, JDK **17**, compileSdk **35**, NDK **27.0.12077973**
 
-**Lưu ý quan trọng về bootstrap:** các binary trong bootstrap zip được biên dịch với `$PREFIX` hardcode là `/data/data/com.termux/files/usr`. Bootstrap hiện tại **chưa được build lại** cho `com.wizkterm`, nên `pkg`/`apt` sẽ không hoạt động đúng cho tới khi bootstrap được build lại với prefix mới.
+**Bootstrap:** bootstrap được build riêng tại repo [`Wizk-Modz/wizk-packages`](https://github.com/Wizk-Modz/wizk-packages) với prefix `/data/data/com.wizkterm/files/usr` (khác bootstrap gốc của Termux). Khi bootstrap được build lại, phải cập nhật **cả** URL **lẫn** checksum SHA-256 trong task `downloadBootstraps` (`app/build.gradle`).
 
 ## Lệnh thường dùng
 
@@ -131,7 +131,11 @@ Package của các plugin (`TERMUX_API_PACKAGE_NAME = TERMUX_PACKAGE_NAME + ".ap
 
 Bootstrap zip được nhúng vào `.so` (`libtermux-bootstrap`) qua `app/src/main/cpp/termux-bootstrap-zip.S` (dùng `.incbin`) + `termux-bootstrap.c` (JNI `getZip`). `TermuxInstaller` đọc zip qua JNI, giải nén vào `$PREFIX` staging rồi rename, sau đó chạy script second stage.
 
-Task `downloadBootstraps` tải bootstrap từ `github.com/termux/termux-packages/releases`, verify SHA-256, lưu vào `app/src/main/cpp/bootstrap-aarch64.zip`. Task này được hook vào `preBuild` và các task `NdkBuild` vì file `.S` cần zip tồn tại trước khi native build chạy.
+Task `downloadBootstraps` tải bootstrap từ `github.com/Wizk-Modz/wizk-packages/releases`, verify SHA-256, lưu vào `app/src/main/cpp/bootstrap-aarch64.zip`. Task này được hook vào `preBuild` và các task `NdkBuild` vì file `.S` cần zip tồn tại trước khi native build chạy.
+
+`downloadBootstrap()` nhận `remoteUrl` đầy đủ (không tự ghép từ version). Tag release của bootstrap chứa dấu `+` nên **phải URL-encode thành `%2B`**, nếu không sẽ tải sai. Nếu file local đã tồn tại nhưng sai checksum, nó bị xoá và tải lại.
+
+Bootstrap hiện tại thiếu `etc/termux/bootstrap/termux-bootstrap-second-stage.sh`; `TermuxInstaller` chỉ log info và bỏ qua bước second stage, không lỗi.
 
 ### RUN_COMMAND và termux-am
 
