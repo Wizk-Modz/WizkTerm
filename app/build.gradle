@@ -230,7 +230,7 @@ tasks.register('downloadBootstraps') {
             // Bootstrap của WizkTerm, build lại với prefix /data/data/com.wizkterm/files/usr.
             // Dấu "+" trong tag release phải URL-encode thành "%2B".
             downloadBootstrap("aarch64",
-                "e268b08d0b09ba3764cde414b6046832139fedc0d5db584bbd82c7fd752db1fe",
+                "d155111dfe42fa1a81202d48ada526837554e0f5f8cacc3e2ce33ed357d85caf",
                 "https://github.com/Wizk-Modz/wizk-packages/releases/download/bootstrap-2026.09.27-r%2Bapt.android-7/bootstrap-aarch64.zip")
         } else if (packageVariant == "apt-android-5") {
             def version = "2025.03.28-r3" + "+" + packageVariant
