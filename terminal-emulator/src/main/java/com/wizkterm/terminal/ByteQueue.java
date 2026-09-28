@@ -17,6 +17,14 @@ final class ByteQueue {
         notify();
     }
 
+    /**
+     * Trả về true nếu queue còn đang mở và còn dữ liệu chưa được đọc.
+     * Trả về false khi queue đã đóng vì {@link #read} sẽ không đọc thêm dữ liệu nữa.
+     */
+    public synchronized boolean hasStoredBytes() {
+        return mOpen && mStoredBytes > 0;
+    }
+
     public synchronized int read(byte[] buffer, boolean block) {
         while (mStoredBytes == 0 && mOpen) {
             if (block) {

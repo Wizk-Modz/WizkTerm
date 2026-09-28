@@ -51,4 +51,25 @@ public class ByteQueueTest extends TestCase {
 		assertEquals(0, q.read(new byte[128], false));
 	}
 
+	public void testHasStoredBytes() throws Exception {
+		ByteQueue q = new ByteQueue(10);
+		assertFalse(q.hasStoredBytes());
+
+		q.write(new byte[]{1, 2, 3}, 0, 3);
+		assertTrue(q.hasStoredBytes());
+
+		q.read(new byte[10], true);
+		assertFalse(q.hasStoredBytes());
+	}
+
+	public void testHasStoredBytesFalseWhenClosed() throws Exception {
+		ByteQueue q = new ByteQueue(10);
+		q.write(new byte[]{1, 2, 3}, 0, 3);
+		q.close();
+
+		// Sau khi đóng, read() không đọc dữ liệu nữa nên hasStoredBytes() phải là false
+		// để tránh việc gửi thông báo lặp vô tận.
+		assertFalse(q.hasStoredBytes());
+	}
+
 }

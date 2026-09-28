@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A terminal session, consisting of a process coupled to a terminal interface.
@@ -41,7 +42,12 @@ public final class TerminalSession extends TerminalOutput {
      * A queue written to from a separate thread when the process outputs, and read by main thread to process by
      * terminal emulator.
      */
-    final ByteQueue mProcessToTerminalIOQueue = new ByteQueue(4096);
+    final ByteQueue mProcessToTerminalIOQueue = new ByteQueue(64 * 1024);
+    /**
+     * Cờ báo main thread đang có message MSG_NEW_INPUT chờ xử lý, dùng để gộp các thông báo
+     * trùng lặp khi tiến trình xuất dữ liệu quá nhanh.
+     */
+    private final AtomicBoolean mHavePendingInput = new AtomicBoolean(false);
     /**
      * A queue written to from the main thread due to user interaction, and read by another thread which forwards by
      * writing to the {@link #mTerminalFileDescriptor}.
@@ -139,7 +145,12 @@ public final class TerminalSession extends TerminalOutput {
                         int read = termIn.read(buffer);
                         if (read == -1) return;
                         if (!mProcessToTerminalIOQueue.write(buffer, 0, read)) return;
-                        mMainThreadHandler.sendEmptyMessage(MSG_NEW_INPUT);
+                        // Gộp thông báo: chỉ gửi message mới khi main thread chưa xử lý message trước đó.
+                        // Nếu không gộp, lệnh xuất nhiều dữ liệu (tar, cat file lớn) sẽ làm ngập main
+                        // thread khiến thiết bị giật lag.
+                        if (mHavePendingInput.compareAndSet(false, true)) {
+                            mMainThreadHandler.sendEmptyMessage(MSG_NEW_INPUT);
+                        }
                     }
                 } catch (Exception e) {
                     // Ignore, just shutting down.
@@ -336,7 +347,7 @@ public final class TerminalSession extends TerminalOutput {
     @SuppressLint("HandlerLeak")
     class MainThreadHandler extends Handler {
 
-        final byte[] mReceiveBuffer = new byte[4 * 1024];
+        final byte[] mReceiveBuffer = new byte[64 * 1024];
 
         @Override
         public void handleMessage(Message msg) {
@@ -344,6 +355,13 @@ public final class TerminalSession extends TerminalOutput {
             if (bytesRead > 0) {
                 mEmulator.append(mReceiveBuffer, bytesRead);
                 notifyScreenUpdate();
+            }
+
+            // Cho phép producer gửi message mới. Nếu queue vẫn còn dữ liệu (producer đã bị chặn
+            // hoặc dữ liệu đến sau khi đọc) thì tự gửi lại message để xử lý tiếp, tránh bỏ sót.
+            mHavePendingInput.set(false);
+            if (mProcessToTerminalIOQueue.hasStoredBytes() && mHavePendingInput.compareAndSet(false, true)) {
+                sendEmptyMessage(MSG_NEW_INPUT);
             }
 
             if (msg.what == MSG_PROCESS_EXITED) {
