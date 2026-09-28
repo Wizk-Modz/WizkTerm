@@ -51,4 +51,15 @@ public class ByteQueueTest extends TestCase {
 		assertEquals(0, q.read(new byte[128], false));
 	}
 
+	public void testHasStoredBytes() throws Exception {
+		ByteQueue q = new ByteQueue(10);
+		assertFalse(q.hasStoredBytes());
+
+		q.write(new byte[]{1, 2, 3}, 0, 3);
+		assertTrue(q.hasStoredBytes());
+
+		q.read(new byte[10], true);
+		assertFalse(q.hasStoredBytes());
+	}
+
 }
