@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -64,6 +65,12 @@ import static com.wizkterm.shared.termux.TermuxConstants.TERMUX_STAGING_PREFIX_D
 final class TermuxInstaller {
 
     private static final String LOG_TAG = "TermuxInstaller";
+
+    /** Đường dẫn script second stage trong bootstrap, đường dẫn mới được ưu tiên. */
+    private static final String[] BOOTSTRAP_SECOND_STAGE_SCRIPT_PATHS = new String[]{
+        "etc/termux/termux-bootstrap/second-stage/termux-bootstrap-second-stage.sh",
+        "etc/termux/bootstrap/termux-bootstrap-second-stage.sh"
+    };
 
     /** Performs bootstrap setup if necessary. */
     static void setupBootstrapIfNeeded(final Activity activity, final Runnable whenDone) {
@@ -206,7 +213,8 @@ final class TermuxInstaller {
                                     }
                                     if (zipEntryName.startsWith("bin/") || zipEntryName.startsWith("libexec") ||
                                         zipEntryName.startsWith("lib/apt/apt-helper") || zipEntryName.startsWith("lib/apt/methods") ||
-                                        zipEntryName.equals("etc/termux/bootstrap/termux-bootstrap-second-stage.sh")) {
+                                        zipEntryName.equals(BOOTSTRAP_SECOND_STAGE_SCRIPT_PATHS[0]) ||
+                                        zipEntryName.equals(BOOTSTRAP_SECOND_STAGE_SCRIPT_PATHS[1])) {
                                         //noinspection OctalInteger
                                         Os.chmod(targetFile.getAbsolutePath(), 0700);
                                     }
@@ -228,9 +236,17 @@ final class TermuxInstaller {
                     }
 
                     // Run Termux bootstrap second stage.
-                    String termuxBootstrapSecondStageFile = TERMUX_PREFIX_DIR_PATH + "/etc/termux/bootstrap/termux-bootstrap-second-stage.sh";
-                    if (!FileUtils.fileExists(termuxBootstrapSecondStageFile, false)) {
-                        Logger.logInfo(LOG_TAG, "Not running Termux bootstrap second stage since script not found at \"" + termuxBootstrapSecondStageFile + "\" path.");
+                    String termuxBootstrapSecondStageFile = null;
+                    for (String scriptPath : BOOTSTRAP_SECOND_STAGE_SCRIPT_PATHS) {
+                        String candidatePath = TERMUX_PREFIX_DIR_PATH + "/" + scriptPath;
+                        if (FileUtils.fileExists(candidatePath, false)) {
+                            termuxBootstrapSecondStageFile = candidatePath;
+                            break;
+                        }
+                    }
+
+                    if (termuxBootstrapSecondStageFile == null) {
+                        Logger.logInfo(LOG_TAG, "Not running Termux bootstrap second stage since script not found at any of the paths: " + Arrays.toString(BOOTSTRAP_SECOND_STAGE_SCRIPT_PATHS));
                     } else {
                         if (!FileUtils.fileExists(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash", true)) {
                             Logger.logInfo(LOG_TAG, "Not running Termux bootstrap second stage since bash not found.");

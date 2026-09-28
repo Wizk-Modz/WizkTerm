@@ -49,8 +49,8 @@ android {
         applicationId "com.wizkterm"
         minSdk buildMinSdk
         targetSdk buildTargetSdk
-        versionCode 1023
-        versionName "1.0.0"
+        versionCode 1024
+        versionName "1.0.1"
 
         if (appVersionName) versionName = appVersionName
         validateVersionName(versionName)
@@ -246,8 +246,8 @@ tasks.register('downloadBootstraps') {
             // Bootstrap của WizkTerm, build lại với prefix /data/data/com.wizkterm/files/usr.
             // Dấu "+" trong tag release phải URL-encode thành "%2B".
             downloadBootstrap("aarch64",
-                "b5049c1d1a60ce8319f955b155f2d2492c7d09e1e872c6edf5161aa7431aff32",
-                "https://github.com/Wizk-Modz/wizk-packages/releases/download/bootstrap-2026.09.27-r2%2Bapt.android-7/bootstrap-aarch64.zip")
+                "ec3b38e3798c262a4cf7951d3a75dff795427a93a027f44fe4d0b8d90b709a07",
+                "https://github.com/Wizk-Modz/wizk-packages/releases/download/bootstrap-2026.09.27-r3%2Bapt.android-7/bootstrap-aarch64.zip")
         } else if (packageVariant == "apt-android-5") {
             def version = "2025.03.28-r3" + "+" + packageVariant
             downloadBootstrap("aarch64",
