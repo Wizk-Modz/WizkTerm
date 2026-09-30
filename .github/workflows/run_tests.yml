@@ -3,20 +3,18 @@ name: Unit tests
 on:
   push:
     branches:
-      - master
-      - android-10
+      - main
   pull_request:
     branches:
-      - master
-      - android-10
+      - main
 
 jobs:
   testing:
     runs-on: ubuntu-latest
     steps:
     - name: Clone repository
-      uses: actions/checkout@v6
-    - name: Setup java 17
+      uses: actions/checkout@v4
+    - name: Set up JDK 17
       uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
