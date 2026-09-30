@@ -11,15 +11,15 @@ android {
         implementation "androidx.core:core:1.6.0"
         implementation "com.google.android.material:material:1.4.0"
         implementation "com.google.guava:guava:24.1-jre"
+        // Tránh xung đột ListenableFuture giữa Guava và các thư viện AndroidX
+        implementation 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
         implementation "io.noties.markwon:core:$markwonVersion"
         implementation "io.noties.markwon:ext-strikethrough:$markwonVersion"
         implementation "io.noties.markwon:linkify:$markwonVersion"
         implementation "io.noties.markwon:recycler:$markwonVersion"
         implementation "org.lsposed.hiddenapibypass:hiddenapibypass:6.1"
 
-        // Do not increment version higher than 1.0.0-alpha09 since it will break ViewUtils and needs to be looked into
-        // noinspection GradleDependency
-        implementation "androidx.window:window:1.0.0-alpha09"
+        implementation "androidx.window:window:1.1.0"
 
         // Do not increment version higher than 2.5 or there
         // will be runtime exceptions on android < 8
@@ -76,6 +76,11 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:1.1.3"
     androidTestImplementation "androidx.test.espresso:espresso-core:3.4.0"
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.4"
+
+    // Ép mọi artifact Kotlin về cùng phiên bản với kotlin-stdlib mà androidx.window kéo vào.
+    // Từ Kotlin 1.8, kotlin-stdlib-jdk7/jdk8 đã được gộp vào kotlin-stdlib, nên nếu để
+    // kotlinx-coroutines kéo bản 1.6.21 cũ thì các class sẽ bị trùng khi build.
+    implementation platform("org.jetbrains.kotlin:kotlin-bom:1.8.20")
 }
 
 tasks.register('sourceJar', Jar) {
