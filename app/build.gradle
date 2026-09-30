@@ -236,8 +236,8 @@ task downloadBootstraps() {
             // Bootstrap của WizkTerm, build lại với prefix /data/data/com.wizkterm/files/usr.
             // Dấu "+" trong tag release phải URL-encode thành "%2B".
             downloadBootstrap("aarch64",
-                "ec3b38e3798c262a4cf7951d3a75dff795427a93a027f44fe4d0b8d90b709a07",
-                "https://github.com/Wizk-Modz/wizk-packages/releases/download/bootstrap-2026.09.27-r3%2Bapt.android-7/bootstrap-aarch64.zip")
+                "536eab547cbe39dc6c7a4a2dff20a32f379f578cb3059b012c2ac52d77912bcd",
+                "https://github.com/Wizk-Modz/wizk-packages/releases/download/bootstrap-2026.09.30-r1%2Bapt.android-7/bootstrap-aarch64.zip")
         } else {
             throw new GradleException("Unsupported TERMUX_PACKAGE_VARIANT \"" + packageVariant + "\"")
         }
