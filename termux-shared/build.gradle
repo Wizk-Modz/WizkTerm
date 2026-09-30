@@ -11,15 +11,15 @@ android {
         implementation "androidx.core:core:1.6.0"
         implementation "com.google.android.material:material:1.4.0"
         implementation "com.google.guava:guava:24.1-jre"
+        // Tránh xung đột ListenableFuture giữa Guava và các thư viện AndroidX
+        implementation 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
         implementation "io.noties.markwon:core:$markwonVersion"
         implementation "io.noties.markwon:ext-strikethrough:$markwonVersion"
         implementation "io.noties.markwon:linkify:$markwonVersion"
         implementation "io.noties.markwon:recycler:$markwonVersion"
         implementation "org.lsposed.hiddenapibypass:hiddenapibypass:6.1"
 
-        // Do not increment version higher than 1.0.0-alpha09 since it will break ViewUtils and needs to be looked into
-        // noinspection GradleDependency
-        implementation "androidx.window:window:1.0.0-alpha09"
+        implementation "androidx.window:window:1.1.0"
 
         // Do not increment version higher than 2.5 or there
         // will be runtime exceptions on android < 8
