@@ -7,7 +7,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.wizkterm.am.Am;
+import com.termux.am.Am;
 import com.wizkterm.shared.R;
 import com.wizkterm.shared.android.PackageUtils;
 import com.wizkterm.shared.android.PermissionUtils;
