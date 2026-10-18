@@ -134,7 +134,7 @@ jobs:
           gh release view "$RELEASE_TAG" --json assets -q '.assets[].name'
 
       - name: Upload APK as workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.APK_RELEASE_NAME }}
           path: |
